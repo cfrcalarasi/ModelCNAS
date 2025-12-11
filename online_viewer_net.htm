@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CNAS - Verificator Protocoale Terapeutice (Mockup)</title>
+    <style>
+        :root {
+            --cnas-blue: #0054a6;
+            --cnas-dark: #003d7a;
+            --light-bg: #f4f7f6;
+            --success: #28a745;
+            --error: #dc3545;
+            --warning: #ffc107;
+            --text-dark: #333;
+            --border-color: #ddd;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--light-bg);
+            margin: 0;
+            padding: 0;
+            color: var(--text-dark);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* HEADER */
+        header {
+            background-color: var(--cnas-blue);
+            color: white;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .logo { font-size: 1.4rem; font-weight: bold; display: flex; align-items: center; gap: 12px; }
+        .user-info { font-size: 0.9rem; background: rgba(255,255,255,0.1); padding: 5px 15px; border-radius: 20px; }
+
+        /* MAIN LAYOUT */
+        .container {
+            display: flex;
+            flex: 1;
+            gap: 25px;
+            padding: 25px;
+            max-width: 1400px;
+            margin: 0 auto;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        /* PANELS */
+        .panel {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.05);
+            border: 1px solid var(--border-color);
+        }
+
+        .panel-input { flex: 1; display: flex; flex-direction: column; gap: 18px; }
+        .panel-status { flex: 1; display: flex; flex-direction: column; gap: 20px; }
+
+        h2 { 
+            font-size: 1.1rem; 
+            border-bottom: 2px solid #eee; 
+            padding-bottom: 10px; 
+            margin-top: 0; 
+            color: var(--cnas-blue); 
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* FORM ELEMENTS */
+        .form-group { display: flex; flex-direction: column; gap: 5px; }
+        
+        label { font-weight: 600; font-size: 0.9rem; color: #555; }
+        
+        select, input[type="text"], input[type="number"] {
+            padding: 12px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 1rem;
+            transition: border 0.2s;
+        }
+        select:focus, input:focus { border-color: var(--cnas-blue); outline: none; }
+
+        .row-group { display: flex; gap: 15px; }
+        .row-group .form-group { flex: 1; }
+
+        /* RADIO & CHECKBOX */
+        .radio-group { display: flex; gap: 20px; background: #f9f9f9; padding: 10px; border-radius: 6px; border: 1px solid #eee; }
+        .radio-group label { font-weight: normal; cursor: pointer; display: flex; align-items: center; gap: 5px; }
+
+        .checkbox-wrapper {
+            background: #fff8e1; /* Yellow tint */
+            padding: 15px;
+            border: 1px solid #ffeeba;
+            border-radius: 6px;
+            display: none; /* Hidden by default */
+            animation: fadeIn 0.3s;
+        }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* BUTTON */
+        button.verify-btn {
+            background-color: var(--cnas-blue);
+            color: white;
+            border: none;
+            padding: 15px;
+            font-size: 1.1rem;
+            border-radius: 6px;
+            cursor: pointer;
+            margin-top: auto;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: background 0.2s;
+            box-shadow: 0 4px 6px rgba(0,84,166,0.2);
+        }
+        button.verify-btn:hover { background-color: var(--cnas-dark); transform: translateY(-1px); }
+
+        /* STATUS CARD */
+        .status-card {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            border: 1px solid #eee;
+            min-height: 180px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            transition: all 0.3s;
+        }
+
+        .status-card.valid { background-color: #e8f5e9; border: 2px solid var(--success); }
+        .status-card.invalid { background-color: #fce4ec; border: 2px solid var(--error); }
+        .status-card.warning { background-color: #fff3cd; border: 2px solid var(--warning); }
+
+        .status-icon { font-size: 3.5rem; margin-bottom: 15px; }
+        .status-title { font-size: 1.8rem; font-weight: 800; margin-bottom: 10px; }
+        .status-message { font-size: 1rem; line-height: 1.5; color: #444; }
+
+        /* PROTOCOL TEXT */
+        .protocol-reference {
+            flex: 1;
+            background: #fafafa;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 15px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+        }
+        .protocol-content {
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            color: #333;
+            white-space: pre-wrap;
+        }
+
+        /* Helper for 28 days input */
+        .highlight-input { background-color: #e3f2fd; font-weight: bold; color: var(--cnas-blue); }
+
+    </style>
+</head>
+<body>
+
+<header>
+    <div class="logo">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="white"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H5v-2h9v2zm5-4H5v-2h14v2zm0-4H5V7h14v2z"/></svg>
+        SIUI-Check | Verificator Protocoale
+    </div>
+    <div class="user-info">
+        Utilizator: <strong>Dr. Popescu Ion</strong> (MF - CMI)
+    </div>
+</header>
+
+<div class="container">
+    
+    <div class="panel panel-input">
+        <h2>Detalii Prescripție</h2>
+        
+        <div class="form-group">
+            <label>Medicament (DCI)</label>
+            <select id="drugSelect" onchange="updateProtocolInfo()">
+                <option value="">-- Selectați Medicamentul --</option>
+                <option value="ticagrelor">TICAGRELORUM (Brilique 90mg)</option>
+                <option value="orlistat">ORLISTATUM (Xenical 120mg)</option>
+                <option value="naproxen">NAPROXEN + ESOMEPRAZOL (Vimovo)</option>
+                <option value="rituximab">RITUXIMABUM (Mabthera)</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label>Cod Diagnostic (ICD-10)</label>
+            <input type="text" id="icdCode" placeholder="Ex: I21.9 (NU folosiți coduri tip 999 gen '410')" oninput="this.value = this.value.toUpperCase()">
+            <small style="color:#888;">Introduceți codul alfanumeric (ex: I21), nu cel statistic.</small>
+        </div>
+
+        <div class="form-group">
+            <label>Specialitate Prescriptor</label>
+            <select id="docType" onchange="checkSpecialty()">
+                <option value="MF">Medic de Familie</option>
+                <option value="CARDIO">Cardiologie</option>
+                <option value="DIABET">Diabetologie / Nutriție</option>
+                <option value="ONCO">Oncologie</option>
+            </select>
+        </div>
+
+        <div class="row-group">
+            <div class="form-group">
+                <label>Nr. Zile Prescrise</label>
+                <input type="number" id="daysInput" placeholder="Zile">
+            </div>
+            <div class="form-group">
+                <label>Tip Rețetă</label>
+                <div class="radio-group">
+                    <label><input type="radio" name="type" value="initiere" checked> Inițiere</label>
+                    <label><input type="radio" name="type" value="continuare"> Continuare</label>
+                </div>
+            </div>
+        </div>
+
+        <div class="checkbox-wrapper" id="letterCheckWrapper">
+            <label style="color: #856404; font-weight:bold;">
+                <input type="checkbox" id="hasLetter"> 
+                Există Scrisoare Medicală validă?
+            </label>
+            <div style="font-size:0.85rem; margin-top:5px; margin-left:22px; color:#666;">
+                Atenție: Medicul de Familie poate prescrie acest medicament DOAR dacă există o scrisoare medicală de la medicul specialist (valabilitate max 6 luni).
+            </div>
+        </div>
+
+        <button class="verify-btn" onclick="validatePrescription()">VERIFICĂ CONFORMITATE</button>
+    </div>
+
+    <div class="panel panel-status">
+        
+        <div id="statusCard" class="status-card">
+            <div class="status-icon">🔍</div>
+            <div class="status-title">Așteaptă Date</div>
+            <div class="status-message">Completați formularul din stânga pentru a valida rețeta.</div>
+        </div>
+
+        <div class="protocol-reference">
+            <h2>Extras Protocol Oficial (Nov 2025)</h2>
+            <div id="protocolText" class="protocol-content">Selectați un medicament pentru a vizualiza regulile...</div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    /* --- BAZA DE DATE PROTOCOALE (MOCK DATA) --- */
+    const protocols = {
+        'ticagrelor': {
+            text: `COD ATC: B01AC24\nAMBALAJ: Cutie x 56 comprimate (Blistere calendarizate).\nPOSOLOGIE: 1 cp dimineața, 1 cp seara.\n\n!!! REGULĂ STRICTĂ DURATĂ: 28 ZILE !!!\n(O cutie ajunge exact 28 de zile. Nu prescrieți pe 30/31 zile!)\n\nINDICAȚIE:\n- Sindrom coronarian acut + Stent\n- Istoric infarct miocardic (>1 an) + Stent + Risc mare\n\nPRESCRIPTORI:\n- Inițiere: Cardiologie, Chirurgie CV.\n- Continuare: Cardiolog sau MF (pe baza scrisorii).`,
+            maxDays: 28,
+            fixedDays: true, // Blochează vizual pe 28
+            validICDPrefix: ['I20', 'I21', 'I22', 'I25'], // Coduri acceptate (Infarct/Angina)
+            allowedInitiators: ['CARDIO'],
+            needsLetterForMF: true
+        },
+        'orlistat': {
+            text: `COD ATC: A001E\nINDICAȚIE: Obezitate (IMC >= 30).\nDOZE: 1 capsulă x 3/zi.\n\nPRESCRIPTORI:\n- EXCLUSIV Medic Specialist (Endocrinolog, Diabetolog).\n- Medicul de Familie NU are drept de prescriere (nici măcar continuare).\n\nCRITERII STOPARE:\n- Lipsa scăderii ponderale 5% în 3 luni.`,
+            maxDays: 31,
+            fixedDays: false,
+            validICDPrefix: ['E66'], // Obezitate
+            allowedInitiators: ['DIABET'], // Simplificat
+            needsLetterForMF: false // MF nu poate deloc
+        },
+        'naproxen': {
+             text: `COD ATC: M01AE52\nINDICAȚIE: Artroză/Poliartrită la pacienți cu risc gastric crescut.\nDOZE: 1 cpr (500/20mg) x 2/zi.\n\nPRESCRIPTORI:\n- Orice medic aflat în contract (Inclusiv MF).\n\nNOTE:\n- Nu se folosește pentru durere acută (dentară, gută).`,
+             maxDays: 31,
+             fixedDays: false,
+             validICDPrefix: ['M05', 'M06', 'M15', 'M16', 'M45'], // Boli reumatice
+             allowedInitiators: ['MF', 'CARDIO', 'DIABET', 'ONCO'],
+             needsLetterForMF: false
+        },
+        'rituximab': {
+            text: `COD ATC: L01FA01\nINDICAȚIE: Pemfigus Vulgar, Limfoame.\nMOD ADMINISTRARE: Perfuzie IV (Spitalizare de zi/continuă).\n\nPRESCRIPTORI:\n- Doar medicul specialist (Dermatolog/Hematolog/Oncolog).\n- Circuit închis (Nu se eliberează prin farmacia de circuit deschis).\n\nMF: NU ARE DREPT DE PRESCRIERE.`,
+            maxDays: 1, // Doză unică per cură
+            fixedDays: false,
+            validICDPrefix: ['L10', 'C82', 'C83'], 
+            allowedInitiators: ['ONCO'],
+            needsLetterForMF: false
+        }
+    };
+
+    /* --- FUNCȚII LOGICE --- */
+
+    function updateProtocolInfo() {
+        const drug = document.getElementById('drugSelect').value;
+        const textDiv = document.getElementById('protocolText');
+        const daysInput = document.getElementById('daysInput');
+        
+        if(drug && protocols[drug]) {
+            textDiv.innerText = protocols[drug].text;
+            
+            // LOGICA AUTOMATĂ PENTRU ZILE
+            if(protocols[drug].fixedDays) {
+                daysInput.value = protocols[drug].maxDays;
+                daysInput.classList.add('highlight-input');
+                // Putem face readOnly dacă vrem să fim stricți, dar lăsăm editabil pt testare eroare
+                // daysInput.readOnly = true; 
+            } else {
+                daysInput.value = 30;
+                daysInput.classList.remove('highlight-input');
+            }
+        } else {
+            textDiv.innerText = "Selectați un medicament din listă...";
+            daysInput.value = "";
+            daysInput.classList.remove('highlight-input');
+        }
+        checkSpecialty();
+        resetStatus();
+    }
+
+    function checkSpecialty() {
+        const docType = document.getElementById('docType').value;
+        const drug = document.getElementById('drugSelect').value;
+        const wrapper = document.getElementById('letterCheckWrapper');
+
+        // Logică afișare checkbox scrisoare
+        if (drug && protocols[drug].needsLetterForMF && docType === 'MF') {
+            wrapper.style.display = 'block';
+        } else {
+            wrapper.style.display = 'none';
+            document.getElementById('hasLetter').checked = false;
+        }
+    }
+
+    function resetStatus() {
+        const card = document.getElementById('statusCard');
+        card.className = 'status-card';
+        card.innerHTML = `<div class="status-icon">🔍</div><div class="status-title">Așteaptă Date</div><div class="status-message">Apăsați "Verifică Conformitate" după completare.</div>`;
+    }
+
+    function validatePrescription() {
+        // Culegere date
+        const drugKey = document.getElementById('drugSelect').value;
+        const docType = document.getElementById('docType').value;
+        const icdCode = document.getElementById('icdCode').value.trim(); // Elimină spații
+        const days = parseInt(document.getElementById('daysInput').value);
+        const hasLetter = document.getElementById('hasLetter').checked;
+        const card = document.getElementById('statusCard');
+
+        // 1. Validare de bază
+        if (!drugKey) { alert("Selectați medicamentul!"); return; }
+        
+        const protocol = protocols[drugKey];
+
+        // 2. VALIDARE DIAGNOSTIC (ICD-10 vs 999)
+        // Verificăm dacă utilizatorul a introdus doar cifre (ex: "410")
+        if (/^\d+$/.test(icdCode)) {
+            setStatus(card, 'invalid', 'EROARE DIAGNOSTIC', 
+                `Ați introdus codul "${icdCode}" care pare a fi din lista statistică (999).<br>
+                 Protocoalele cer coduri <strong>ICD-10 Alfanumerice</strong> (ex: I21).<br>
+                 Corectați diagnosticul.`);
+            return;
+        }
+        // Verificăm prefixul (Ex: pt Ticagrelor trebuie I20-I25)
+        let isDiagnosisValid = false;
+        if (icdCode.length < 3) {
+            setStatus(card, 'warning', 'DIAGNOSTIC INCOMPLET', 'Codul ICD-10 este prea scurt.');
+            return;
+        }
+        const inputPrefix = icdCode.substring(0,3);
+        if (protocol.validICDPrefix.includes(inputPrefix)) {
+            isDiagnosisValid = true;
+        } else {
+            setStatus(card, 'invalid', 'DIAGNOSTIC NEELIGIBIL', 
+                `Codul ${icdCode} nu se regăsește în lista bolilor aprobate pentru ${drugKey.toUpperCase()}.<br>
+                 Coduri permise: ${protocol.validICDPrefix.join(', ')}...`);
+            return;
+        }
+
+        // 3. VALIDARE DURATĂ (Regula 28 zile)
+        if (protocol.fixedDays && days !== protocol.maxDays) {
+            setStatus(card, 'invalid', 'EROARE CANTITATE', 
+                `<strong>Nu puteți prescrie pe ${days} zile!</strong><br>
+                 Pentru acest medicament, cutia este strict de ${protocol.maxDays} zile.<br>
+                 Orice altă durată duce la "spargerea" cutiei (interzis/nedecontat).`);
+            return;
+        }
+
+        // 4. VALIDARE PRESCRIPTOR & SCRISOARE
+        if (docType === 'MF') {
+            // Cazul 1: Medicamentul e interzis complet la MF (ex: Orlistat, Rituximab)
+            if (!protocol.allowedInitiators.includes('MF') && !protocol.needsLetterForMF) {
+                setStatus(card, 'invalid', 'PRESCRIPTOR NEAUTORIZAT', 
+                    `Medicul de Familie <strong>NU</strong> are dreptul să prescrie ${drugKey.toUpperCase()}.<br>
+                     Doar medicul specialist.`);
+                return;
+            }
+            // Cazul 2: Medicamentul e permis la MF DOAR cu scrisoare (ex: Ticagrelor)
+            if (protocol.needsLetterForMF) {
+                if (!hasLetter) {
+                    setStatus(card, 'invalid', 'LIPSEȘTE SCRISOAREA', 
+                        `Medicul de Familie poate prescrie doar în baza unei <strong>Scrisori Medicale</strong> valide.<br>
+                         Pacientul trebuie trimis la Cardiolog.`);
+                    return;
+                }
+            }
+        }
+
+        // DACĂ TOTUL E OK:
+        setStatus(card, 'valid', 'PRESCRIPȚIE VALIDĂ', 
+            `Totul pare în regulă!<br>
+             Medicament: <strong>${drugKey.toUpperCase()}</strong><br>
+             Durată: ${days} zile<br>
+             Cod Boală: ${icdCode} (Corect)`);
+    }
+
+    function setStatus(element, type, title, message) {
+        element.className = `status-card ${type}`;
+        let icon = type === 'valid' ? '✅' : (type === 'warning' ? '⚠️' : '⛔');
+        element.innerHTML = `<div class="status-icon">${icon}</div><div class="status-title">${title}</div><div class="status-message">${message}</div>`;
+    }
+
+</script>
+
+</body>
+</html>
